@@ -6,13 +6,12 @@
 <title>2026 고교생을 위한 진로체험 프로그램 참여 여부</title>
 <!--
   ============================================================
-  [Google Forms 연동 가이드]
-  1. Google Forms에서 동일한 항목으로 폼을 생성합니다.
-  2. 폼 미리보기 → 페이지 소스 보기에서 각 항목의 entry ID를 확인합니다.
-     (예: entry.123456789)
-  3. 아래 <form> 태그의 action URL을 Google Forms 응답 URL로 교체합니다.
-     (예: https://docs.google.com/forms/d/e/FORM_ID/formResponse)
-  4. 각 input/select/textarea의 name 속성을 entry ID로 교체합니다.
+  [Google Apps Script 연동 가이드]
+  1. Google 스프레드시트를 새로 만듭니다.
+  2. 시트 이름: "참여여부", "운영계획서"
+  3. 확장 프로그램 → Apps Script → Google_Apps_Script_코드.js 내용 붙여넣기
+  4. 배포 → 새 배포 → 웹 앱 (실행: 나, 액세스: 모든 사용자)
+  5. 배포 URL을 아래 SCRIPT_URL에 붙여넣기
   ============================================================
 -->
 <style>
@@ -308,6 +307,16 @@
     transform: scale(0.99);
   }
 
+  .btn-submit:disabled {
+    background: #86868b;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-submit.success {
+    background: #34c759;
+  }
+
   .required-mark {
     color: #ff3b30;
     margin-left: 2px;
@@ -507,12 +516,15 @@
 </div>
 
 <script>
+  // ★ 아래 URL을 Google Apps Script 배포 URL로 교체하세요
+  const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
   const personCounts = { assistant: 1, professor: 1 };
   const maxCount = 10;
 
   const labels = {
-    assistant: { name: '조교명', id: '사번', phone: '연락처', email: '이메일', btn: '조교' },
-    professor: { name: '교원명', id: '사번', phone: '연락처', email: '이메일', btn: '교원' }
+    assistant: { name: '조교명', id: '사번', phone: '연락처', email: '이메일' },
+    professor: { name: '교원명', id: '사번', phone: '연락처', email: '이메일' }
   };
 
   function addPerson(type) {
@@ -561,11 +573,77 @@
     btn.disabled = personCounts[type] >= maxCount;
   }
 
-  document.getElementById('participationForm').addEventListener('submit', function(e) {
+  function collectPersons(type) {
+    const list = document.getElementById(type === 'assistant' ? 'assistantList' : 'professorList');
+    const rows = list.querySelectorAll('.person-row');
+    const persons = [];
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      if (inputs[0].value.trim()) {
+        persons.push({
+          name: inputs[0].value.trim(),
+          id: inputs[1].value.trim(),
+          phone: inputs[2].value.trim(),
+          email: inputs[3].value.trim()
+        });
+      }
+    });
+    return persons;
+  }
+
+  document.getElementById('participationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
     const checked = document.querySelectorAll('input[name="schedule"]:checked');
     if (checked.length === 0) {
-      e.preventDefault();
       alert('참여 가능한 일정을 1개 이상 선택해 주세요.');
+      return;
+    }
+
+    if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      alert('Google Apps Script 배포 URL이 설정되지 않았습니다.\n스크립트 코드의 SCRIPT_URL을 확인해 주세요.');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '제출 중...';
+
+    const schedule = [];
+    checked.forEach(cb => schedule.push(cb.value));
+
+    const campusMove = document.querySelector('input[name="campus_move"]:checked');
+
+    const payload = {
+      formType: 'participation',
+      college: document.querySelector('input[name="college"]').value,
+      department: document.querySelector('input[name="department"]').value,
+      track: document.querySelector('input[name="track"]').value,
+      assistants: collectPersons('assistant'),
+      professors: collectPersons('professor'),
+      schedule: schedule,
+      campusMove: campusMove ? campusMove.value : '',
+      remarks: document.querySelector('textarea[name="remarks"]').value
+    };
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.result === 'success') {
+        submitBtn.textContent = '제출 완료!';
+        submitBtn.classList.add('success');
+        alert('제출이 완료되었습니다. 감사합니다!');
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (err) {
+      alert('제출 중 오류가 발생했습니다: ' + err.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출하기';
     }
   });
 </script>

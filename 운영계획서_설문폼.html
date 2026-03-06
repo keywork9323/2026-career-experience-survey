@@ -6,13 +6,12 @@
 <title>2026 고교생을 위한 진로체험 프로그램 운영 계획서</title>
 <!--
   ============================================================
-  [Google Forms 연동 가이드]
-  1. Google Forms에서 동일한 항목으로 폼을 생성합니다.
-  2. 폼 미리보기 → 페이지 소스 보기에서 각 항목의 entry ID를 확인합니다.
-     (예: entry.123456789)
-  3. 아래 <form> 태그의 action URL을 Google Forms 응답 URL로 교체합니다.
-     (예: https://docs.google.com/forms/d/e/FORM_ID/formResponse)
-  4. 각 input/textarea의 name 속성을 entry ID로 교체합니다.
+  [Google Apps Script 연동 가이드]
+  1. Google 스프레드시트를 새로 만듭니다.
+  2. 시트 이름: "참여여부", "운영계획서"
+  3. 확장 프로그램 → Apps Script → Google_Apps_Script_코드.js 내용 붙여넣기
+  4. 배포 → 새 배포 → 웹 앱 (실행: 나, 액세스: 모든 사용자)
+  5. 배포 URL을 아래 SCRIPT_URL에 붙여넣기
   ============================================================
 -->
 <style>
@@ -172,6 +171,16 @@
     transform: scale(0.99);
   }
 
+  .btn-submit:disabled {
+    background: #86868b;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-submit.success {
+    background: #34c759;
+  }
+
   .program-info {
     display: inline-block;
     padding: 6px 14px;
@@ -269,6 +278,56 @@
 
   </form>
 </div>
+
+<script>
+  // ★ 아래 URL을 Google Apps Script 배포 URL로 교체하세요
+  const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+  document.getElementById('planForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      alert('Google Apps Script 배포 URL이 설정되지 않았습니다.\n스크립트 코드의 SCRIPT_URL을 확인해 주세요.');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '제출 중...';
+
+    const payload = {
+      formType: 'plan',
+      trackName: document.querySelector('input[name="track_name"]').value,
+      professorName: document.querySelector('input[name="professor_name"]').value,
+      programGoal: document.querySelector('textarea[name="program_goal"]').value,
+      trackIntro: document.querySelector('textarea[name="track_intro"]').value,
+      lectureTopic: document.querySelector('input[name="lecture_topic"]').value,
+      lectureContent: document.querySelector('textarea[name="lecture_content"]').value,
+      activityTopic: document.querySelector('input[name="activity_topic"]').value,
+      activityContent: document.querySelector('textarea[name="activity_content"]').value
+    };
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.result === 'success') {
+        submitBtn.textContent = '제출 완료!';
+        submitBtn.classList.add('success');
+        alert('운영 계획서가 제출되었습니다. 감사합니다!');
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (err) {
+      alert('제출 중 오류가 발생했습니다: ' + err.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출하기';
+    }
+  });
+</script>
 
 </body>
 </html>
