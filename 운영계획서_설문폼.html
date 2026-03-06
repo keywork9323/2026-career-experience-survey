@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 고교생을 위한 진로체험 프로그램 운영 계획서</title>
+<!--
+  ============================================================
+  [Google Forms 연동 가이드]
+  1. Google Forms에서 동일한 항목으로 폼을 생성합니다.
+  2. 폼 미리보기 → 페이지 소스 보기에서 각 항목의 entry ID를 확인합니다.
+     (예: entry.123456789)
+  3. 아래 <form> 태그의 action URL을 Google Forms 응답 URL로 교체합니다.
+     (예: https://docs.google.com/forms/d/e/FORM_ID/formResponse)
+  4. 각 input/textarea의 name 속성을 entry ID로 교체합니다.
+  ============================================================
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #1d1d1f;
+    margin-bottom: 8px;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: #86868b;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .field-group {
+    margin-bottom: 20px;
+  }
+
+  .field-group:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  input[type="text"],
+  textarea {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    background: #fafafa;
+    color: #1d1d1f;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus {
+    border-color: #0071e3;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  }
+
+  ::placeholder {
+    color: #aaa;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .required-mark {
+    color: #ff3b30;
+    margin-left: 2px;
+  }
+
+  .note-text {
+    font-size: 13px;
+    color: #86868b;
+    margin-top: 6px;
+  }
+
+  .sub-section {
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .sub-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .sub-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Submit */
+  .btn-submit {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #fff;
+    background: #0071e3;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+  }
+
+  .btn-submit:hover {
+    background: #0077ed;
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+  }
+
+  .btn-submit:active {
+    transform: scale(0.99);
+  }
+
+  .program-info {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0071e3;
+    background: #f0f7ff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .container { padding: 0 16px; margin: 24px auto; }
+    .hero h1 { font-size: 22px; }
+    .card { padding: 24px 20px; border-radius: 14px; }
+    .sub-section { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>2026 고교생을 위한<br>진로체험 프로그램 운영 계획서</h1>
+    <p>참여 교원이 다수일 경우 교원별 1부씩 작성하여 제출 바랍니다.</p>
+  </div>
+
+  <form id="planForm" action="#" method="POST">
+
+    <!-- 1. 기본 정보 -->
+    <div class="card">
+      <div class="card-title">1. 기본 정보</div>
+      <div class="field-group">
+        <label>트랙명 <span class="required-mark">*</span></label>
+        <input type="text" name="track_name" placeholder="기계자동차공학" required>
+      </div>
+      <div class="field-group">
+        <label>교원명 <span class="required-mark">*</span></label>
+        <input type="text" name="professor_name" required>
+      </div>
+    </div>
+
+    <!-- 2. 프로그램 목표 -->
+    <div class="card">
+      <div class="card-title">2. 프로그램 목표 <span class="required-mark">*</span></div>
+      <span class="program-info">프로그램 구성: 총 90분</span>
+      <div class="field-group">
+        <label>목표</label>
+        <textarea name="program_goal" placeholder="프로그램의 목표를 작성해 주세요." required></textarea>
+      </div>
+    </div>
+
+    <!-- 3. 트랙 소개 -->
+    <div class="card">
+      <div class="card-title">3. 트랙 소개 <span class="required-mark">*</span></div>
+      <div class="field-group">
+        <label>내용</label>
+        <textarea name="track_intro" placeholder="교과 교육과정, 진로 및 취업률, 장학 제도 및 비교과 프로그램 등을 포함하여 작성해 주세요." required></textarea>
+      </div>
+    </div>
+
+    <!-- 4. 전공특강 (이론) -->
+    <div class="card">
+      <div class="card-title">4. 전공특강 (이론) <span class="required-mark">*</span></div>
+      <div class="sub-section">
+        <div class="field-group">
+          <label>주제</label>
+          <input type="text" name="lecture_topic" placeholder="전공특강 주제를 입력해 주세요." required>
+        </div>
+        <div class="field-group">
+          <label>내용</label>
+          <textarea name="lecture_content" placeholder="해당 전공 관련 기초 지식 기반의 특강 내용을 작성해 주세요." required></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 학생 체험활동 (실습) -->
+    <div class="card">
+      <div class="card-title">5. 학생 체험활동 (실습) <span class="required-mark">*</span></div>
+      <div class="sub-section">
+        <div class="field-group">
+          <label>주제</label>
+          <input type="text" name="activity_topic" placeholder="체험활동 주제를 입력해 주세요." required>
+        </div>
+        <div class="field-group">
+          <label>내용</label>
+          <textarea name="activity_content" placeholder="견학, 체험, 실습/실험, 재학생 프로그램 등의 내용을 작성해 주세요." required></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 제출 버튼 -->
+    <button type="submit" class="btn-submit">제출하기</button>
+
+  </form>
+</div>
+
+</body>
+</html>
