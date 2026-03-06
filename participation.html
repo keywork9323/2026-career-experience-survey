@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 고교생을 위한 진로체험 프로그램 참여 여부</title>
+<!--
+  ============================================================
+  [Google Apps Script 연동 가이드]
+  1. Google 스프레드시트를 새로 만듭니다.
+  2. 시트 이름: "참여여부", "운영계획서"
+  3. 확장 프로그램 → Apps Script → Google_Apps_Script_코드.js 내용 붙여넣기
+  4. 배포 → 새 배포 → 웹 앱 (실행: 나, 액세스: 모든 사용자)
+  5. 배포 URL을 아래 SCRIPT_URL에 붙여넣기
+  ============================================================
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #1d1d1f;
+    margin-bottom: 8px;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: #86868b;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .field-group {
+    margin-bottom: 20px;
+  }
+
+  .field-group:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    background: #fafafa;
+    color: #1d1d1f;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="tel"]:focus,
+  textarea:focus {
+    border-color: #0071e3;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  }
+
+  ::placeholder {
+    color: #aaa;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  /* Person rows */
+  .person-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 12px;
+  }
+
+  .person-row .field-group {
+    margin-bottom: 0;
+  }
+
+  .btn-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 44px;
+    border: none;
+    background: none;
+    color: #ff3b30;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background 0.15s;
+    margin-bottom: 0;
+  }
+
+  .btn-remove:hover {
+    background: #fff0f0;
+  }
+
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #0071e3;
+    background: none;
+    border: 1px dashed #0071e3;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+
+  .btn-add:hover {
+    background: #f0f7ff;
+  }
+
+  .btn-add:disabled {
+    color: #aaa;
+    border-color: #ddd;
+    cursor: not-allowed;
+    background: none;
+  }
+
+  /* Schedule grid */
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+
+  .schedule-item {
+    position: relative;
+  }
+
+  .schedule-item input[type="checkbox"] {
+    display: none;
+  }
+
+  .schedule-item label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1d1d1f;
+    text-transform: none;
+    letter-spacing: 0;
+    background: #fafafa;
+    border: 1px solid #d2d2d7;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .schedule-item label:hover {
+    border-color: #0071e3;
+    background: #f0f7ff;
+  }
+
+  .schedule-item input[type="checkbox"]:checked + label {
+    background: #0071e3;
+    border-color: #0071e3;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.25);
+  }
+
+  .month-header {
+    grid-column: 1 / -1;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1d1d1f;
+    padding: 12px 0 4px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .month-header:first-child {
+    padding-top: 0;
+  }
+
+  /* Radio group */
+  .radio-group {
+    display: flex;
+    gap: 12px;
+  }
+
+  .radio-item {
+    position: relative;
+  }
+
+  .radio-item input[type="radio"] {
+    display: none;
+  }
+
+  .radio-item label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #1d1d1f;
+    background: #fafafa;
+    border: 1px solid #d2d2d7;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .radio-item label:hover {
+    border-color: #0071e3;
+    background: #f0f7ff;
+  }
+
+  .radio-item input[type="radio"]:checked + label {
+    background: #0071e3;
+    border-color: #0071e3;
+    color: #fff;
+  }
+
+  /* Submit */
+  .btn-submit {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #fff;
+    background: #0071e3;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+  }
+
+  .btn-submit:hover {
+    background: #0077ed;
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+  }
+
+  .btn-submit:active {
+    transform: scale(0.99);
+  }
+
+  .btn-submit:disabled {
+    background: #86868b;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-submit.success {
+    background: #34c759;
+  }
+
+  .required-mark {
+    color: #ff3b30;
+    margin-left: 2px;
+  }
+
+  .note-text {
+    font-size: 13px;
+    color: #86868b;
+    margin-top: 8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .container { padding: 0 16px; margin: 24px auto; }
+    .hero h1 { font-size: 22px; }
+    .card { padding: 24px 20px; border-radius: 14px; }
+    .person-row {
+      grid-template-columns: 1fr 1fr;
+    }
+    .person-row .field-group:nth-child(3),
+    .person-row .field-group:nth-child(4) {
+      grid-column: span 1;
+    }
+    .btn-remove {
+      grid-column: 1 / -1;
+      width: 100%;
+      justify-content: center;
+    }
+    .schedule-grid {
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>2026 고교생을 위한<br>진로체험 프로그램 참여 여부</h1>
+    <p>고교 신청 가능 요일은 화~목이며, 한 주당 최대 2개 고교 진행 예정입니다.</p>
+  </div>
+
+  <form id="participationForm" action="#" method="POST">
+
+    <!-- 1. 기본 정보 입력 -->
+    <div class="card">
+      <div class="card-title">1. 기본 정보 입력</div>
+      <div class="field-group">
+        <label>단과대학명 <span class="required-mark">*</span></label>
+        <input type="text" name="college" placeholder="미래엔지니어링융합대학" required>
+      </div>
+      <div class="field-group">
+        <label>학부명 <span class="required-mark">*</span></label>
+        <input type="text" name="department" placeholder="미래모빌리티공학부" required>
+      </div>
+      <div class="field-group">
+        <label>트랙명 <span class="required-mark">*</span></label>
+        <input type="text" name="track" placeholder="기계자동차공학" required>
+      </div>
+    </div>
+
+    <!-- 2. 조교 정보 -->
+    <div class="card">
+      <div class="card-title">2. 조교 정보</div>
+      <div id="assistantList">
+        <div class="person-row" data-index="1">
+          <div class="field-group">
+            <label>조교명 <span class="required-mark">*</span></label>
+            <input type="text" name="assistant_name_1" required>
+          </div>
+          <div class="field-group">
+            <label>사번 <span class="required-mark">*</span></label>
+            <input type="text" name="assistant_id_1" required>
+          </div>
+          <div class="field-group">
+            <label>연락처 <span class="required-mark">*</span></label>
+            <input type="tel" name="assistant_phone_1" required>
+          </div>
+          <div class="field-group">
+            <label>이메일 <span class="required-mark">*</span></label>
+            <input type="email" name="assistant_email_1" required>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn-add" id="addAssistant" onclick="addPerson('assistant')">+ 조교 추가</button>
+      <p class="note-text">최대 10명까지 추가할 수 있습니다.</p>
+    </div>
+
+    <!-- 3. 교원 정보 -->
+    <div class="card">
+      <div class="card-title">3. 교원 정보</div>
+      <div id="professorList">
+        <div class="person-row" data-index="1">
+          <div class="field-group">
+            <label>교원명 <span class="required-mark">*</span></label>
+            <input type="text" name="professor_name_1" required>
+          </div>
+          <div class="field-group">
+            <label>사번 <span class="required-mark">*</span></label>
+            <input type="text" name="professor_id_1" required>
+          </div>
+          <div class="field-group">
+            <label>연락처 <span class="required-mark">*</span></label>
+            <input type="tel" name="professor_phone_1" required>
+          </div>
+          <div class="field-group">
+            <label>이메일 <span class="required-mark">*</span></label>
+            <input type="email" name="professor_email_1" required>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn-add" id="addProfessor" onclick="addPerson('professor')">+ 교원 추가</button>
+      <p class="note-text">최대 10명까지 추가할 수 있습니다.</p>
+    </div>
+
+    <!-- 4. 참여 일정 선택 -->
+    <div class="card">
+      <div class="card-title">4. 참여 일정 선택 <span class="required-mark">*</span></div>
+      <p class="note-text" style="margin-bottom: 16px; margin-top: -12px;">참여 가능한 일자를 클릭하여 선택해 주세요. (복수 선택 가능)</p>
+      <div class="schedule-grid">
+
+        <div class="month-header">5월</div>
+        <div class="schedule-item"><input type="checkbox" id="d1" name="schedule" value="2026.5.5.(화)"><label for="d1">5/5 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d2" name="schedule" value="2026.5.6.(수)"><label for="d2">5/6 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d3" name="schedule" value="2026.5.7.(목)"><label for="d3">5/7 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d4" name="schedule" value="2026.5.12.(화)"><label for="d4">5/12 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d5" name="schedule" value="2026.5.13.(수)"><label for="d5">5/13 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d6" name="schedule" value="2026.5.14.(목)"><label for="d6">5/14 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d7" name="schedule" value="2026.5.19.(화)"><label for="d7">5/19 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d8" name="schedule" value="2026.5.20.(수)"><label for="d8">5/20 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d9" name="schedule" value="2026.5.21.(목)"><label for="d9">5/21 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d10" name="schedule" value="2026.5.26.(화)"><label for="d10">5/26 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d11" name="schedule" value="2026.5.27.(수)"><label for="d11">5/27 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d12" name="schedule" value="2026.5.28.(목)"><label for="d12">5/28 (목)</label></div>
+
+        <div class="month-header">6월</div>
+        <div class="schedule-item"><input type="checkbox" id="d13" name="schedule" value="2026.6.16.(화)"><label for="d13">6/16 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d14" name="schedule" value="2026.6.17.(수)"><label for="d14">6/17 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d15" name="schedule" value="2026.6.18.(목)"><label for="d15">6/18 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d16" name="schedule" value="2026.6.23.(화)"><label for="d16">6/23 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d17" name="schedule" value="2026.6.24.(수)"><label for="d17">6/24 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d18" name="schedule" value="2026.6.25.(목)"><label for="d18">6/25 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d19" name="schedule" value="2026.6.30.(화)"><label for="d19">6/30 (화)</label></div>
+
+        <div class="month-header">7월</div>
+        <div class="schedule-item"><input type="checkbox" id="d20" name="schedule" value="2026.7.7.(화)"><label for="d20">7/7 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d21" name="schedule" value="2026.7.8.(수)"><label for="d21">7/8 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d22" name="schedule" value="2026.7.9.(목)"><label for="d22">7/9 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d23" name="schedule" value="2026.7.14.(화)"><label for="d23">7/14 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d24" name="schedule" value="2026.7.15.(수)"><label for="d24">7/15 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d25" name="schedule" value="2026.7.16.(목)"><label for="d25">7/16 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d26" name="schedule" value="2026.7.21.(화)"><label for="d26">7/21 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d27" name="schedule" value="2026.7.22.(수)"><label for="d27">7/22 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d28" name="schedule" value="2026.7.23.(목)"><label for="d28">7/23 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d29" name="schedule" value="2026.7.28.(화)"><label for="d29">7/28 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d30" name="schedule" value="2026.7.29.(수)"><label for="d30">7/29 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d31" name="schedule" value="2026.7.30.(목)"><label for="d31">7/30 (목)</label></div>
+
+        <div class="month-header">8월</div>
+        <div class="schedule-item"><input type="checkbox" id="d32" name="schedule" value="2026.8.4.(화)"><label for="d32">8/4 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d33" name="schedule" value="2026.8.5.(수)"><label for="d33">8/5 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d34" name="schedule" value="2026.8.6.(목)"><label for="d34">8/6 (목)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d35" name="schedule" value="2026.8.11.(화)"><label for="d35">8/11 (화)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d36" name="schedule" value="2026.8.12.(수)"><label for="d36">8/12 (수)</label></div>
+        <div class="schedule-item"><input type="checkbox" id="d37" name="schedule" value="2026.8.13.(목)"><label for="d37">8/13 (목)</label></div>
+      </div>
+    </div>
+
+    <!-- 5. 타 캠퍼스 이동 여부 -->
+    <div class="card">
+      <div class="card-title">5. 타 캠퍼스 이동 여부 <span class="required-mark">*</span></div>
+      <div class="radio-group">
+        <div class="radio-item">
+          <input type="radio" id="campus_o" name="campus_move" value="O" required>
+          <label for="campus_o">O</label>
+        </div>
+        <div class="radio-item">
+          <input type="radio" id="campus_x" name="campus_move" value="X">
+          <label for="campus_x">X</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. 비고 -->
+    <div class="card">
+      <div class="card-title">6. 비고</div>
+      <div class="field-group">
+        <label>추가 전달 사항 (선택)</label>
+        <textarea name="remarks" placeholder="추가 전달 사항이 있으시면 자유롭게 작성해 주세요."></textarea>
+      </div>
+    </div>
+
+    <!-- 제출 버튼 -->
+    <button type="submit" class="btn-submit">제출하기</button>
+
+  </form>
+</div>
+
+<script>
+  // ★ 아래 URL을 Google Apps Script 배포 URL로 교체하세요
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHuIyhMLlhOTJFn5hJm1-hzlaZ3cyv0prFmW8BRn9tEUIJeqc2TJTqYjKFqqITzKm0tQ/exec';
+
+  const personCounts = { assistant: 1, professor: 1 };
+  const maxCount = 10;
+
+  const labels = {
+    assistant: { name: '조교명', id: '사번', phone: '연락처', email: '이메일' },
+    professor: { name: '교원명', id: '사번', phone: '연락처', email: '이메일' }
+  };
+
+  function addPerson(type) {
+    if (personCounts[type] >= maxCount) return;
+    personCounts[type]++;
+    const idx = personCounts[type];
+    const lb = labels[type];
+
+    const row = document.createElement('div');
+    row.className = 'person-row';
+    row.dataset.index = idx;
+    row.innerHTML = `
+      <div class="field-group">
+        <label>${lb.name}</label>
+        <input type="text" name="${type}_name_${idx}">
+      </div>
+      <div class="field-group">
+        <label>${lb.id}</label>
+        <input type="text" name="${type}_id_${idx}">
+      </div>
+      <div class="field-group">
+        <label>${lb.phone}</label>
+        <input type="tel" name="${type}_phone_${idx}">
+      </div>
+      <div class="field-group">
+        <label>${lb.email}</label>
+        <input type="email" name="${type}_email_${idx}">
+      </div>
+      <button type="button" class="btn-remove" onclick="removePerson(this, '${type}')" title="삭제">✕</button>
+    `;
+
+    const listId = type === 'assistant' ? 'assistantList' : 'professorList';
+    document.getElementById(listId).appendChild(row);
+    updateAddButton(type);
+  }
+
+  function removePerson(btn, type) {
+    btn.closest('.person-row').remove();
+    personCounts[type]--;
+    updateAddButton(type);
+  }
+
+  function updateAddButton(type) {
+    const btnId = type === 'assistant' ? 'addAssistant' : 'addProfessor';
+    const btn = document.getElementById(btnId);
+    btn.disabled = personCounts[type] >= maxCount;
+  }
+
+  function collectPersons(type) {
+    const list = document.getElementById(type === 'assistant' ? 'assistantList' : 'professorList');
+    const rows = list.querySelectorAll('.person-row');
+    const persons = [];
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      if (inputs[0].value.trim()) {
+        persons.push({
+          name: inputs[0].value.trim(),
+          id: inputs[1].value.trim(),
+          phone: inputs[2].value.trim(),
+          email: inputs[3].value.trim()
+        });
+      }
+    });
+    return persons;
+  }
+
+  document.getElementById('participationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const checked = document.querySelectorAll('input[name="schedule"]:checked');
+    if (checked.length === 0) {
+      alert('참여 가능한 일정을 1개 이상 선택해 주세요.');
+      return;
+    }
+
+    if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      alert('Google Apps Script 배포 URL이 설정되지 않았습니다.\n스크립트 코드의 SCRIPT_URL을 확인해 주세요.');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '제출 중...';
+
+    const schedule = [];
+    checked.forEach(cb => schedule.push(cb.value));
+
+    const campusMove = document.querySelector('input[name="campus_move"]:checked');
+
+    const payload = {
+      formType: 'participation',
+      college: document.querySelector('input[name="college"]').value,
+      department: document.querySelector('input[name="department"]').value,
+      track: document.querySelector('input[name="track"]').value,
+      assistants: collectPersons('assistant'),
+      professors: collectPersons('professor'),
+      schedule: schedule,
+      campusMove: campusMove ? campusMove.value : '',
+      remarks: document.querySelector('textarea[name="remarks"]').value
+    };
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.result === 'success') {
+        submitBtn.textContent = '제출 완료!';
+        submitBtn.classList.add('success');
+        alert('제출이 완료되었습니다. 감사합니다!');
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (err) {
+      alert('제출 중 오류가 발생했습니다: ' + err.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출하기';
+    }
+  });
+</script>
+
+</body>
+</html>
