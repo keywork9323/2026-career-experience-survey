@@ -19,10 +19,19 @@
  * ============================================================
  */
 
+var SPREADSHEET_ID = '1JDWkiU_ug0jIPJS-ZJ8yCTuU8k_u-ppJ8f3hPiXNyO8';
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    result: 'success',
+    message: '2026 진로체험 프로그램 설문 API가 정상 작동 중입니다.'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     var formType = data.formType;
 
     if (formType === "participation") {
@@ -43,7 +52,6 @@ function handleParticipation(ss, data) {
     sheet = ss.insertSheet("참여여부");
   }
 
-  // 헤더가 없으면 추가
   if (sheet.getLastRow() === 0) {
     var headers = [
       "제출일시",
@@ -57,7 +65,6 @@ function handleParticipation(ss, data) {
       "비고"
     ];
     sheet.appendRow(headers);
-    // 헤더 스타일
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setFontWeight("bold");
     headerRange.setBackground("#4285f4");
@@ -86,7 +93,6 @@ function handlePlan(ss, data) {
     sheet = ss.insertSheet("운영계획서");
   }
 
-  // 헤더가 없으면 추가
   if (sheet.getLastRow() === 0) {
     var headers = [
       "제출일시",
@@ -134,4 +140,11 @@ function createResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
   );
+}
+
+// 권한 승인용 - 편집기에서 이 함수를 한 번 실행해 주세요
+function authorize() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  Logger.log("스프레드시트 이름: " + ss.getName());
+  Logger.log("권한 승인 완료!");
 }
