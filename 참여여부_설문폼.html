@@ -573,22 +573,23 @@
     btn.disabled = personCounts[type] >= maxCount;
   }
 
-  function collectPersons(type) {
+  function collectPersonsFlat(type) {
     const list = document.getElementById(type === 'assistant' ? 'assistantList' : 'professorList');
     const rows = list.querySelectorAll('.person-row');
-    const persons = [];
+    const result = {};
+    let count = 0;
     rows.forEach(row => {
       const inputs = row.querySelectorAll('input');
       if (inputs[0].value.trim()) {
-        persons.push({
-          name: inputs[0].value.trim(),
-          id: inputs[1].value.trim(),
-          phone: inputs[2].value.trim(),
-          email: inputs[3].value.trim()
-        });
+        count++;
+        result[type + '_name_' + count] = inputs[0].value.trim();
+        result[type + '_id_' + count] = inputs[1].value.trim();
+        result[type + '_phone_' + count] = inputs[2].value.trim();
+        result[type + '_email_' + count] = inputs[3].value.trim();
       }
     });
-    return persons;
+    result[type + '_count'] = count;
+    return result;
   }
 
   document.getElementById('participationForm').addEventListener('submit', async function(e) {
@@ -614,13 +615,16 @@
 
     const campusMove = document.querySelector('input[name="campus_move"]:checked');
 
+    const assistantData = collectPersonsFlat('assistant');
+    const professorData = collectPersonsFlat('professor');
+
     const payload = {
       formType: 'participation',
       college: document.querySelector('input[name="college"]').value,
       department: document.querySelector('input[name="department"]').value,
       track: document.querySelector('input[name="track"]').value,
-      assistants: collectPersons('assistant'),
-      professors: collectPersons('professor'),
+      ...assistantData,
+      ...professorData,
       schedule: schedule,
       campusMove: campusMove ? campusMove.value : '',
       remarks: document.querySelector('textarea[name="remarks"]').value

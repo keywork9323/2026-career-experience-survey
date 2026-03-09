@@ -52,18 +52,17 @@ function handleParticipation(ss, data) {
     sheet = ss.insertSheet("참여여부");
   }
 
+  var maxPersons = 10;
+
   if (sheet.getLastRow() === 0) {
-    var headers = [
-      "제출일시",
-      "단과대학명",
-      "학부명",
-      "트랙명",
-      "조교 정보",
-      "교원 정보",
-      "참여 가능 일정",
-      "타 캠퍼스 이동",
-      "비고"
-    ];
+    var headers = ["제출일시", "단과대학명", "학부명", "트랙명"];
+    for (var i = 1; i <= maxPersons; i++) {
+      headers.push("조교" + i + "_이름", "조교" + i + "_사번", "조교" + i + "_연락처", "조교" + i + "_이메일");
+    }
+    for (var i = 1; i <= maxPersons; i++) {
+      headers.push("교원" + i + "_이름", "교원" + i + "_사번", "교원" + i + "_연락처", "교원" + i + "_이메일");
+    }
+    headers.push("참여 가능 일정", "타 캠퍼스 이동", "비고");
     sheet.appendRow(headers);
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setFontWeight("bold");
@@ -75,13 +74,36 @@ function handleParticipation(ss, data) {
     new Date().toLocaleString("ko-KR"),
     data.college || "",
     data.department || "",
-    data.track || "",
-    formatPersonList(data.assistants || []),
-    formatPersonList(data.professors || []),
-    (data.schedule || []).join(", "),
-    data.campusMove || "",
-    data.remarks || ""
+    data.track || ""
   ];
+
+  var assistantCount = data.assistant_count || 0;
+  for (var i = 1; i <= maxPersons; i++) {
+    if (i <= assistantCount) {
+      row.push(data["assistant_name_" + i] || "");
+      row.push(data["assistant_id_" + i] || "");
+      row.push(data["assistant_phone_" + i] || "");
+      row.push(data["assistant_email_" + i] || "");
+    } else {
+      row.push("", "", "", "");
+    }
+  }
+
+  var professorCount = data.professor_count || 0;
+  for (var i = 1; i <= maxPersons; i++) {
+    if (i <= professorCount) {
+      row.push(data["professor_name_" + i] || "");
+      row.push(data["professor_id_" + i] || "");
+      row.push(data["professor_phone_" + i] || "");
+      row.push(data["professor_email_" + i] || "");
+    } else {
+      row.push("", "", "", "");
+    }
+  }
+
+  row.push((data.schedule || []).join(", "));
+  row.push(data.campusMove || "");
+  row.push(data.remarks || "");
 
   sheet.appendRow(row);
   return createResponse({ result: "success", message: "참여 여부가 저장되었습니다." });
@@ -128,13 +150,6 @@ function handlePlan(ss, data) {
   return createResponse({ result: "success", message: "운영 계획서가 저장되었습니다." });
 }
 
-function formatPersonList(persons) {
-  return persons
-    .map(function (p) {
-      return p.name + " (사번:" + p.id + ", " + p.phone + ", " + p.email + ")";
-    })
-    .join(" / ");
-}
 
 function createResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
