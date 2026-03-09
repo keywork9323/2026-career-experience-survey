@@ -393,11 +393,11 @@
           </div>
           <div class="field-group">
             <label>연락처 <span class="required-mark">*</span></label>
-            <input type="tel" name="assistant_phone_1" required>
+            <input type="tel" name="assistant_phone_1" placeholder="010-0000-0000" required>
           </div>
           <div class="field-group">
             <label>이메일 <span class="required-mark">*</span></label>
-            <input type="email" name="assistant_email_1" required>
+            <input type="email" name="assistant_email_1" placeholder="ID@ulsan.ac.kr" required>
           </div>
         </div>
       </div>
@@ -420,11 +420,11 @@
           </div>
           <div class="field-group">
             <label>연락처 <span class="required-mark">*</span></label>
-            <input type="tel" name="professor_phone_1" required>
+            <input type="tel" name="professor_phone_1" placeholder="010-0000-0000" required>
           </div>
           <div class="field-group">
             <label>이메일 <span class="required-mark">*</span></label>
-            <input type="email" name="professor_email_1" required>
+            <input type="email" name="professor_email_1" placeholder="ID@ulsan.ac.kr" required>
           </div>
         </div>
       </div>
@@ -547,11 +547,11 @@
       </div>
       <div class="field-group">
         <label>${lb.phone}</label>
-        <input type="tel" name="${type}_phone_${idx}">
+        <input type="tel" name="${type}_phone_${idx}" placeholder="010-0000-0000">
       </div>
       <div class="field-group">
         <label>${lb.email}</label>
-        <input type="email" name="${type}_email_${idx}">
+        <input type="email" name="${type}_email_${idx}" placeholder="ID@ulsan.ac.kr">
       </div>
       <button type="button" class="btn-remove" onclick="removePerson(this, '${type}')" title="삭제">✕</button>
     `;
