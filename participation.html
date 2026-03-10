@@ -400,8 +400,8 @@
             <input type="email" name="assistant_email_1" placeholder="ID@ulsan.ac.kr" required>
           </div>
           <div class="field-group">
-            <label>내선번호</label>
-            <input type="tel" name="assistant_ext_1">
+            <label>내선번호 <span class="required-mark">*</span></label>
+            <input type="tel" name="assistant_ext_1" required>
           </div>
         </div>
       </div>
@@ -431,8 +431,8 @@
             <input type="email" name="professor_email_1" placeholder="ID@ulsan.ac.kr" required>
           </div>
           <div class="field-group">
-            <label>내선번호</label>
-            <input type="tel" name="professor_ext_1">
+            <label>내선번호 <span class="required-mark">*</span></label>
+            <input type="tel" name="professor_ext_1" required>
           </div>
         </div>
       </div>
@@ -575,7 +575,7 @@
       </div>
       <div class="field-group">
         <label>${lb.ext}</label>
-        <input type="tel" name="${type}_ext_${idx}">
+        <input type="tel" name="${type}_ext_${idx}" required>
       </div>
       <button type="button" class="btn-remove" onclick="removePerson(this, '${type}')" title="삭제">✕</button>
     `;
