@@ -393,7 +393,7 @@
           </div>
           <div class="field-group">
             <label>연락처 <span class="required-mark">*</span></label>
-            <input type="tel" name="assistant_phone_1" placeholder="010-0000-0000" required>
+            <input type="tel" name="assistant_phone_1" placeholder="010-0000-0000" oninput="formatPhone(this)" required>
           </div>
           <div class="field-group">
             <label>이메일 <span class="required-mark">*</span></label>
@@ -420,7 +420,7 @@
           </div>
           <div class="field-group">
             <label>연락처 <span class="required-mark">*</span></label>
-            <input type="tel" name="professor_phone_1" placeholder="010-0000-0000" required>
+            <input type="tel" name="professor_phone_1" placeholder="010-0000-0000" oninput="formatPhone(this)" required>
           </div>
           <div class="field-group">
             <label>이메일 <span class="required-mark">*</span></label>
@@ -519,6 +519,18 @@
   // ★ 아래 URL을 Google Apps Script 배포 URL로 교체하세요
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHuIyhMLlhOTJFn5hJm1-hzlaZ3cyv0prFmW8BRn9tEUIJeqc2TJTqYjKFqqITzKm0tQ/exec';
 
+  // ── 전화번호 자동 하이픈 ──
+  function formatPhone(input) {
+    let value = input.value.replace(/[^0-9]/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+    if (value.length > 7) {
+      value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7);
+    } else if (value.length > 3) {
+      value = value.slice(0, 3) + '-' + value.slice(3);
+    }
+    input.value = value;
+  }
+
   const personCounts = { assistant: 1, professor: 1 };
   const maxCount = 10;
 
@@ -547,7 +559,7 @@
       </div>
       <div class="field-group">
         <label>${lb.phone}</label>
-        <input type="tel" name="${type}_phone_${idx}" placeholder="010-0000-0000">
+        <input type="tel" name="${type}_phone_${idx}" placeholder="010-0000-0000" oninput="formatPhone(this)">
       </div>
       <div class="field-group">
         <label>${lb.email}</label>
