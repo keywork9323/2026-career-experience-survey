@@ -48,27 +48,132 @@ function doPost(e) {
 
 function handleParticipation(ss, data) {
   var sheet = ss.getSheetByName("참여여부");
-  if (!sheet) {
-    sheet = ss.insertSheet("참여여부");
+  if (!sheet) { sheet = ss.insertSheet("참여여부"); }
+
+  var assistantCount = parseInt(data.assistant_count) || 0;
+  var professorCount = parseInt(data.professor_count) || 0;
+  var scheduleCount = parseInt(data.schedule_count) || 0;
+
+  // ── 헤더 생성 헬퍼 ──
+  function buildHeaders(maxA, maxP, maxS) {
+    var h = ["제출일시", "단과대학명", "학부명", "트랙명"];
+    for (var i = 1; i <= maxA; i++) {
+      h.push("조교" + i + "_이름", "조교" + i + "_사번", "조교" + i + "_연락처", "조교" + i + "_이메일");
+    }
+    for (var i = 1; i <= maxP; i++) {
+      h.push("교원" + i + "_이름", "교원" + i + "_사번", "교원" + i + "_연락처", "교원" + i + "_이메일");
+    }
+    for (var i = 1; i <= maxS; i++) {
+      h.push("일정" + i);
+    }
+    h.push("타 캠퍼스 이동", "비고");
+    return h;
   }
 
-  var maxPersons = 10;
+  // ── 헤더 스타일 적용 ──
+  function styleHeaders(sh, colCount) {
+    var range = sh.getRange(1, 1, 1, colCount);
+    range.setFontWeight("bold");
+    range.setBackground("#4285f4");
+    range.setFontColor("#ffffff");
+    sh.setFrozenRows(1);
+  }
+
+  // ── 헤더에서 현재 최대 번호 파악 ──
+  function getMaxFromHeaders(headers, prefix, suffix) {
+    var max = 0;
+    var regex = new RegExp("^" + prefix + "(\\d+)" + (suffix || "_이름") + "$");
+    for (var i = 0; i < headers.length; i++) {
+      var m = headers[i].toString().match(regex);
+      if (m) max = Math.max(max, parseInt(m[1]));
+    }
+    return max;
+  }
+
+  // ── 기존 데이터에서 실제 사용된 최대 번호 파악 ──
+  function getActualMaxFromData(allData, headers, prefix, suffix) {
+    var max = 0;
+    var regex = new RegExp("^" + prefix + "(\\d+)" + (suffix || "_이름") + "$");
+    for (var r = 0; r < allData.length; r++) {
+      for (var c = 0; c < headers.length; c++) {
+        var m = headers[c].toString().match(regex);
+        if (m && allData[r][c] && allData[r][c].toString().trim() !== "") {
+          max = Math.max(max, parseInt(m[1]));
+        }
+      }
+    }
+    return max;
+  }
 
   if (sheet.getLastRow() === 0) {
-    var headers = ["제출일시", "단과대학명", "학부명", "트랙명"];
-    for (var i = 1; i <= maxPersons; i++) {
-      headers.push("조교" + i + "_이름", "조교" + i + "_사번", "조교" + i + "_연락처", "조교" + i + "_이메일");
-    }
-    for (var i = 1; i <= maxPersons; i++) {
-      headers.push("교원" + i + "_이름", "교원" + i + "_사번", "교원" + i + "_연락처", "교원" + i + "_이메일");
-    }
-    headers.push("참여 가능 일정", "타 캠퍼스 이동", "비고");
+    // ── 신규 시트: 제출 데이터 기준으로 헤더 생성 ──
+    var maxA = Math.max(assistantCount, 1);
+    var maxP = Math.max(professorCount, 1);
+    var maxS = Math.max(scheduleCount, 1);
+    var headers = buildHeaders(maxA, maxP, maxS);
     sheet.appendRow(headers);
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold");
-    headerRange.setBackground("#4285f4");
-    headerRange.setFontColor("#ffffff");
+    styleHeaders(sheet, headers.length);
+  } else {
+    // ── 기존 시트: 필요 시 열 확장/축소 ──
+    var existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var currentMaxA = getMaxFromHeaders(existingHeaders, "조교", "_이름");
+    var currentMaxP = getMaxFromHeaders(existingHeaders, "교원", "_이름");
+    var currentMaxS = getMaxFromHeaders(existingHeaders, "일정", "$");
+
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    var allData = [];
+    if (lastRow > 1) {
+      allData = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    }
+
+    // 실제 데이터가 있는 최대 수 + 이번 제출 수 중 큰 값
+    var actualMaxA = getActualMaxFromData(allData, existingHeaders, "조교", "_이름");
+    var actualMaxP = getActualMaxFromData(allData, existingHeaders, "교원", "_이름");
+    var actualMaxS = getActualMaxFromData(allData, existingHeaders, "일정", "$");
+    var neededMaxA = Math.max(assistantCount, actualMaxA, 1);
+    var neededMaxP = Math.max(professorCount, actualMaxP, 1);
+    var neededMaxS = Math.max(scheduleCount, actualMaxS, 1);
+
+    if (neededMaxA !== currentMaxA || neededMaxP !== currentMaxP || neededMaxS !== currentMaxS) {
+      // 헤더 매핑 생성
+      var oldMap = {};
+      for (var i = 0; i < existingHeaders.length; i++) {
+        oldMap[existingHeaders[i]] = i;
+      }
+      var newHeaders = buildHeaders(neededMaxA, neededMaxP, neededMaxS);
+      var newMap = {};
+      for (var i = 0; i < newHeaders.length; i++) {
+        newMap[newHeaders[i]] = i;
+      }
+
+      // 기존 데이터를 새 구조에 맞게 재배치
+      var newData = [];
+      for (var r = 0; r < allData.length; r++) {
+        var newRow = new Array(newHeaders.length).fill("");
+        for (var h in oldMap) {
+          if (newMap.hasOwnProperty(h)) {
+            newRow[newMap[h]] = allData[r][oldMap[h]];
+          }
+        }
+        newData.push(newRow);
+      }
+
+      // 시트 재작성
+      sheet.clear();
+      sheet.appendRow(newHeaders);
+      if (newData.length > 0) {
+        sheet.getRange(2, 1, newData.length, newHeaders.length).setValues(newData);
+      }
+      styleHeaders(sheet, newHeaders.length);
+    }
   }
+
+  // ── 현재 최종 헤더 기준으로 데이터 행 작성 ──
+  var finalHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var finalMaxA = getMaxFromHeaders(finalHeaders, "조교", "_이름");
+  var finalMaxP = getMaxFromHeaders(finalHeaders, "교원", "_이름");
+  var finalMaxS = getMaxFromHeaders(finalHeaders, "일정", "$");
 
   var row = [
     new Date().toLocaleString("ko-KR"),
@@ -77,33 +182,32 @@ function handleParticipation(ss, data) {
     data.track || ""
   ];
 
-  var assistantCount = data.assistant_count || 0;
-  for (var i = 1; i <= maxPersons; i++) {
-    if (i <= assistantCount) {
-      row.push(data["assistant_name_" + i] || "");
-      row.push(data["assistant_id_" + i] || "");
-      row.push(data["assistant_phone_" + i] || "");
-      row.push(data["assistant_email_" + i] || "");
-    } else {
-      row.push("", "", "", "");
-    }
+  for (var i = 1; i <= finalMaxA; i++) {
+    row.push(
+      i <= assistantCount ? (data["assistant_name_" + i] || "") : "",
+      i <= assistantCount ? (data["assistant_id_" + i] || "") : "",
+      i <= assistantCount ? (data["assistant_phone_" + i] || "") : "",
+      i <= assistantCount ? (data["assistant_email_" + i] || "") : ""
+    );
   }
 
-  var professorCount = data.professor_count || 0;
-  for (var i = 1; i <= maxPersons; i++) {
-    if (i <= professorCount) {
-      row.push(data["professor_name_" + i] || "");
-      row.push(data["professor_id_" + i] || "");
-      row.push(data["professor_phone_" + i] || "");
-      row.push(data["professor_email_" + i] || "");
-    } else {
-      row.push("", "", "", "");
-    }
+  for (var i = 1; i <= finalMaxP; i++) {
+    row.push(
+      i <= professorCount ? (data["professor_name_" + i] || "") : "",
+      i <= professorCount ? (data["professor_id_" + i] || "") : "",
+      i <= professorCount ? (data["professor_phone_" + i] || "") : "",
+      i <= professorCount ? (data["professor_email_" + i] || "") : ""
+    );
   }
 
-  row.push((data.schedule || []).join(", "));
-  row.push(data.campusMove || "");
-  row.push(data.remarks || "");
+  for (var i = 1; i <= finalMaxS; i++) {
+    row.push(i <= scheduleCount ? (data["schedule_" + i] || "") : "");
+  }
+
+  row.push(
+    data.campusMove || "",
+    data.remarks || ""
+  );
 
   sheet.appendRow(row);
   return createResponse({ result: "success", message: "참여 여부가 저장되었습니다." });

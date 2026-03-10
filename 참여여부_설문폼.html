@@ -622,8 +622,11 @@
     submitBtn.disabled = true;
     submitBtn.textContent = '제출 중...';
 
-    const schedule = [];
-    checked.forEach(cb => schedule.push(cb.value));
+    const scheduleData = {};
+    checked.forEach((cb, idx) => {
+      scheduleData['schedule_' + (idx + 1)] = cb.value;
+    });
+    scheduleData['schedule_count'] = checked.length;
 
     const campusMove = document.querySelector('input[name="campus_move"]:checked');
 
@@ -637,7 +640,7 @@
       track: document.querySelector('input[name="track"]').value,
       ...assistantData,
       ...professorData,
-      schedule: schedule,
+      ...scheduleData,
       campusMove: campusMove ? campusMove.value : '',
       remarks: document.querySelector('textarea[name="remarks"]').value
     };
