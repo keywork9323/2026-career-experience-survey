@@ -58,10 +58,10 @@ function handleParticipation(ss, data) {
   function buildHeaders(maxA, maxP, maxS) {
     var h = ["제출일시", "단과대학명", "학부명", "트랙명"];
     for (var i = 1; i <= maxA; i++) {
-      h.push("조교" + i + "_이름", "조교" + i + "_사번", "조교" + i + "_연락처", "조교" + i + "_이메일");
+      h.push("조교" + i + "_이름", "조교" + i + "_사번", "조교" + i + "_연락처", "조교" + i + "_이메일", "조교" + i + "_내선번호");
     }
     for (var i = 1; i <= maxP; i++) {
-      h.push("교원" + i + "_이름", "교원" + i + "_사번", "교원" + i + "_연락처", "교원" + i + "_이메일");
+      h.push("교원" + i + "_이름", "교원" + i + "_사번", "교원" + i + "_연락처", "교원" + i + "_이메일", "교원" + i + "_내선번호");
     }
     for (var i = 1; i <= maxS; i++) {
       h.push("일정" + i);
@@ -187,7 +187,8 @@ function handleParticipation(ss, data) {
       i <= assistantCount ? (data["assistant_name_" + i] || "") : "",
       i <= assistantCount ? (data["assistant_id_" + i] || "") : "",
       i <= assistantCount ? (data["assistant_phone_" + i] || "") : "",
-      i <= assistantCount ? (data["assistant_email_" + i] || "") : ""
+      i <= assistantCount ? (data["assistant_email_" + i] || "") : "",
+      i <= assistantCount ? (data["assistant_ext_" + i] || "") : ""
     );
   }
 
@@ -196,7 +197,8 @@ function handleParticipation(ss, data) {
       i <= professorCount ? (data["professor_name_" + i] || "") : "",
       i <= professorCount ? (data["professor_id_" + i] || "") : "",
       i <= professorCount ? (data["professor_phone_" + i] || "") : "",
-      i <= professorCount ? (data["professor_email_" + i] || "") : ""
+      i <= professorCount ? (data["professor_email_" + i] || "") : "",
+      i <= professorCount ? (data["professor_ext_" + i] || "") : ""
     );
   }
 

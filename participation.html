@@ -121,7 +121,7 @@
   /* Person rows */
   .person-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;
     gap: 10px;
     align-items: end;
     margin-bottom: 12px;
@@ -399,6 +399,10 @@
             <label>이메일 <span class="required-mark">*</span></label>
             <input type="email" name="assistant_email_1" placeholder="ID@ulsan.ac.kr" required>
           </div>
+          <div class="field-group">
+            <label>내선번호</label>
+            <input type="tel" name="assistant_ext_1">
+          </div>
         </div>
       </div>
       <button type="button" class="btn-add" id="addAssistant" onclick="addPerson('assistant')">+ 조교 추가</button>
@@ -425,6 +429,10 @@
           <div class="field-group">
             <label>이메일 <span class="required-mark">*</span></label>
             <input type="email" name="professor_email_1" placeholder="ID@ulsan.ac.kr" required>
+          </div>
+          <div class="field-group">
+            <label>내선번호</label>
+            <input type="tel" name="professor_ext_1">
           </div>
         </div>
       </div>
@@ -535,8 +543,8 @@
   const maxCount = 10;
 
   const labels = {
-    assistant: { name: '조교명', id: '사번', phone: '연락처', email: '이메일' },
-    professor: { name: '교원명', id: '사번', phone: '연락처', email: '이메일' }
+    assistant: { name: '조교명', id: '사번', phone: '연락처', email: '이메일', ext: '내선번호' },
+    professor: { name: '교원명', id: '사번', phone: '연락처', email: '이메일', ext: '내선번호' }
   };
 
   function addPerson(type) {
@@ -564,6 +572,10 @@
       <div class="field-group">
         <label>${lb.email}</label>
         <input type="email" name="${type}_email_${idx}" placeholder="ID@ulsan.ac.kr">
+      </div>
+      <div class="field-group">
+        <label>${lb.ext}</label>
+        <input type="tel" name="${type}_ext_${idx}">
       </div>
       <button type="button" class="btn-remove" onclick="removePerson(this, '${type}')" title="삭제">✕</button>
     `;
@@ -598,6 +610,7 @@
         result[type + '_id_' + count] = inputs[1].value.trim();
         result[type + '_phone_' + count] = inputs[2].value.trim();
         result[type + '_email_' + count] = inputs[3].value.trim();
+        result[type + '_ext_' + count] = inputs[4].value.trim();
       }
     });
     result[type + '_count'] = count;
