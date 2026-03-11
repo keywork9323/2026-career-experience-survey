@@ -52,10 +52,23 @@ function handleParticipation(ss, data) {
 
   var assistantCount = parseInt(data.assistant_count) || 0;
   var professorCount = parseInt(data.professor_count) || 0;
-  var scheduleCount = parseInt(data.schedule_count) || 0;
+
+  // ── 고정 일정 목록 (38개) ──
+  var FIXED_DATES = [
+    "2026.5.6.(수)", "2026.5.7.(목)", "2026.5.8.(금)",
+    "2026.5.12.(화)", "2026.5.13.(수)", "2026.5.14.(목)", "2026.5.15.(금)",
+    "2026.5.19.(화)", "2026.5.20.(수)", "2026.5.21.(목)", "2026.5.22.(금)",
+    "2026.5.26.(화)", "2026.5.27.(수)", "2026.5.28.(목)", "2026.5.29.(금)",
+    "2026.6.23.(화)", "2026.6.24.(수)", "2026.6.25.(목)", "2026.6.26.(금)", "2026.6.30.(화)",
+    "2026.7.7.(화)", "2026.7.8.(수)", "2026.7.9.(목)", "2026.7.10.(금)",
+    "2026.7.14.(화)", "2026.7.15.(수)", "2026.7.16.(목)", "2026.7.17.(금)",
+    "2026.7.21.(화)", "2026.7.22.(수)",
+    "2026.8.4.(화)", "2026.8.5.(수)", "2026.8.6.(목)", "2026.8.7.(금)",
+    "2026.8.11.(화)", "2026.8.12.(수)", "2026.8.13.(목)", "2026.8.14.(금)"
+  ];
 
   // ── 헤더 생성 헬퍼 ──
-  function buildHeaders(maxA, maxP, maxS) {
+  function buildHeaders(maxA, maxP) {
     var h = ["제출일시", "단과대학명", "학부명", "트랙명"];
     for (var i = 1; i <= maxA; i++) {
       h.push("조교" + i + "_이름", "조교" + i + "_사번", "조교" + i + "_연락처", "조교" + i + "_이메일", "조교" + i + "_내선번호");
@@ -63,8 +76,8 @@ function handleParticipation(ss, data) {
     for (var i = 1; i <= maxP; i++) {
       h.push("교원" + i + "_이름", "교원" + i + "_사번", "교원" + i + "_연락처", "교원" + i + "_이메일", "교원" + i + "_내선번호");
     }
-    for (var i = 1; i <= maxS; i++) {
-      h.push("일정" + i);
+    for (var i = 0; i < FIXED_DATES.length; i++) {
+      h.push(FIXED_DATES[i]);
     }
     h.push("타 캠퍼스 이동", "비고");
     return h;
@@ -109,16 +122,14 @@ function handleParticipation(ss, data) {
     // ── 신규 시트: 제출 데이터 기준으로 헤더 생성 ──
     var maxA = Math.max(assistantCount, 1);
     var maxP = Math.max(professorCount, 1);
-    var maxS = Math.max(scheduleCount, 1);
-    var headers = buildHeaders(maxA, maxP, maxS);
+    var headers = buildHeaders(maxA, maxP);
     sheet.appendRow(headers);
     styleHeaders(sheet, headers.length);
   } else {
-    // ── 기존 시트: 필요 시 열 확장/축소 ──
+    // ── 기존 시트: 필요 시 조교/교원 열 확장/축소 ──
     var existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     var currentMaxA = getMaxFromHeaders(existingHeaders, "조교", "_이름");
     var currentMaxP = getMaxFromHeaders(existingHeaders, "교원", "_이름");
-    var currentMaxS = getMaxFromHeaders(existingHeaders, "일정", "$");
 
     var lastRow = sheet.getLastRow();
     var lastCol = sheet.getLastColumn();
@@ -127,27 +138,22 @@ function handleParticipation(ss, data) {
       allData = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
     }
 
-    // 실제 데이터가 있는 최대 수 + 이번 제출 수 중 큰 값
     var actualMaxA = getActualMaxFromData(allData, existingHeaders, "조교", "_이름");
     var actualMaxP = getActualMaxFromData(allData, existingHeaders, "교원", "_이름");
-    var actualMaxS = getActualMaxFromData(allData, existingHeaders, "일정", "$");
     var neededMaxA = Math.max(assistantCount, actualMaxA, 1);
     var neededMaxP = Math.max(professorCount, actualMaxP, 1);
-    var neededMaxS = Math.max(scheduleCount, actualMaxS, 1);
 
-    if (neededMaxA !== currentMaxA || neededMaxP !== currentMaxP || neededMaxS !== currentMaxS) {
-      // 헤더 매핑 생성
+    if (neededMaxA !== currentMaxA || neededMaxP !== currentMaxP) {
       var oldMap = {};
       for (var i = 0; i < existingHeaders.length; i++) {
         oldMap[existingHeaders[i]] = i;
       }
-      var newHeaders = buildHeaders(neededMaxA, neededMaxP, neededMaxS);
+      var newHeaders = buildHeaders(neededMaxA, neededMaxP);
       var newMap = {};
       for (var i = 0; i < newHeaders.length; i++) {
         newMap[newHeaders[i]] = i;
       }
 
-      // 기존 데이터를 새 구조에 맞게 재배치
       var newData = [];
       for (var r = 0; r < allData.length; r++) {
         var newRow = new Array(newHeaders.length).fill("");
@@ -159,7 +165,6 @@ function handleParticipation(ss, data) {
         newData.push(newRow);
       }
 
-      // 시트 재작성
       sheet.clear();
       sheet.appendRow(newHeaders);
       if (newData.length > 0) {
@@ -173,7 +178,6 @@ function handleParticipation(ss, data) {
   var finalHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var finalMaxA = getMaxFromHeaders(finalHeaders, "조교", "_이름");
   var finalMaxP = getMaxFromHeaders(finalHeaders, "교원", "_이름");
-  var finalMaxS = getMaxFromHeaders(finalHeaders, "일정", "$");
 
   var row = [
     new Date().toLocaleString("ko-KR"),
@@ -202,8 +206,9 @@ function handleParticipation(ss, data) {
     );
   }
 
-  for (var i = 1; i <= finalMaxS; i++) {
-    row.push(i <= scheduleCount ? (data["schedule_" + i] || "") : "");
+  // ── 고정 일정 열: 선택된 날짜는 O, 아니면 빈칸 ──
+  for (var i = 0; i < FIXED_DATES.length; i++) {
+    row.push(data[FIXED_DATES[i]] === "O" ? "O" : "");
   }
 
   row.push(
